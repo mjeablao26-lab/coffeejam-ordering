@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: coffeejam-ordering
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: Coffeejam
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: coffeejam-database
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: FILESYSTEM_DISK
+        value: public
+      - key: COFFEEJAM_ADMIN_NAME
+        value: John Eddie Ablao
+      - key: COFFEEJAM_ADMIN_EMAIL
+        sync: false
+      - key: COFFEEJAM_ADMIN_PASSWORD
+        sync: false
+
+databases:
+  - name: coffeejam-database
+    plan: free
+    region: singapore
+    databaseName: coffeejam
+    user: coffeejam
