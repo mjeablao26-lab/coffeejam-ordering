@@ -14,3 +14,5 @@ echo "Seeding the administrator and Coffeejam products..."
 php artisan db:seed --force
 
 echo "Render startup preparation completed."
+
+exec apache2-foreground
