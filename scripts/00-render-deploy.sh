@@ -13,6 +13,9 @@ php artisan migrate --force
 echo "Seeding the administrator and Coffeejam products..."
 php artisan db:seed --force
 
+echo "Applying runtime write permissions..."
+chown -R www-data:www-data database storage bootstrap/cache
+
 echo "Render startup preparation completed."
 
 exec apache2-foreground
