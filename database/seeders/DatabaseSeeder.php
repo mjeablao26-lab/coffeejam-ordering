@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use InvalidArgumentException;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,7 +17,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::query()->orderBy('id')->first()?->update(['is_admin' => true]);
+        $this->seedAdministrator();
 
         $products = [
             ['name' => 'Americano', 'description' => 'Bold espresso mellowed with water for a clean, energizing cup.', 'price' => 85, 'image' => '/images/products/americano.png'],
@@ -35,5 +36,52 @@ class DatabaseSeeder extends Seeder
                 [...$product, 'is_available' => true],
             );
         }
+    }
+
+    private function seedAdministrator(): void
+    {
+        $name = (string) config('coffeejam.admin.name');
+        $email = config('coffeejam.admin.email');
+        $password = config('coffeejam.admin.password');
+
+        if (filled($email) || filled($password)) {
+            if (! filled($email) || ! filled($password)) {
+                throw new InvalidArgumentException(
+                    'Both COFFEEJAM_ADMIN_EMAIL and COFFEEJAM_ADMIN_PASSWORD must be configured.',
+                );
+            }
+
+            if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new InvalidArgumentException('COFFEEJAM_ADMIN_EMAIL must be a valid email address.');
+            }
+
+            if (mb_strlen($password) < 12) {
+                throw new InvalidArgumentException('COFFEEJAM_ADMIN_PASSWORD must contain at least 12 characters.');
+            }
+
+            $administrator = User::query()->firstOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $name,
+                    'password' => $password,
+                    'email_verified_at' => now(),
+                ],
+            );
+
+            $administrator->forceFill([
+                'name' => $name,
+                'is_admin' => true,
+            ])->save();
+
+            return;
+        }
+
+        if (app()->environment('production')) {
+            throw new InvalidArgumentException(
+                'Set COFFEEJAM_ADMIN_EMAIL and COFFEEJAM_ADMIN_PASSWORD before production seeding.',
+            );
+        }
+
+        User::query()->orderBy('id')->first()?->update(['is_admin' => true]);
     }
 }
